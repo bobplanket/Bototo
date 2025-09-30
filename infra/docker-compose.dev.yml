@@ -1,0 +1,250 @@
+version: "3.9"
+services:
+  gateway-api:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/gateway.Dockerfile
+    env_file:
+      - ../.env.template
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../apps/gateway_api:/app/apps/gateway_api
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - internal
+
+  data-ingestor:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/data_ingestor.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/data_ingestor:/app/apps/data_ingestor
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - nats
+    networks:
+      - internal
+
+  news-ingestor:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/news_ingestor.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/news_ingestor:/app/apps/news_ingestor
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - nats
+    networks:
+      - internal
+
+  feature-pipeline:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/feature_pipeline.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/feature_pipeline:/app/apps/feature_pipeline
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - nats
+    networks:
+      - internal
+
+  llm-agents:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/llm_agents.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/llm_agents:/app/apps/llm_agents
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - feature-pipeline
+      - nats
+    networks:
+      - internal
+
+  risk-manager:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/risk_manager.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/risk_manager:/app/apps/risk_manager
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+      - ../data:/app/data
+    depends_on:
+      - redis
+      - nats
+    networks:
+      - internal
+
+  execution-ib:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/execution_ib.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/execution_ib:/app/apps/execution_ib
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - risk-manager
+      - nats
+    networks:
+      - internal
+
+  execution-crypto:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/execution_crypto.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/execution_crypto:/app/apps/execution_crypto
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - risk-manager
+      - nats
+    networks:
+      - internal
+
+  portfolio-ledger:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/portfolio_ledger.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/portfolio_ledger:/app/apps/portfolio_ledger
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - postgres
+      - nats
+    networks:
+      - internal
+
+  reporter:
+    build:
+      context: ..
+      dockerfile: infra/dockerfiles/reporter.Dockerfile
+    env_file:
+      - ../.env.template
+    volumes:
+      - ../apps/reporter:/app/apps/reporter
+      - ../autollm_trader:/app/autollm_trader
+      - ../configs:/app/configs
+    depends_on:
+      - postgres
+      - nats
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: autollm
+      POSTGRES_USER: autollm
+      POSTGRES_PASSWORD: changeme
+    ports:
+      - "5432:5432"
+    networks:
+      - internal
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - internal
+
+  nats:
+    image: nats:2.10
+    ports:
+      - "4222:4222"
+    command: ["-js"]
+    networks:
+      - internal
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - internal
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - internal
+
+  loki:
+    image: grafana/loki:2.9.2
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    networks:
+      - internal
+
+  promtail:
+    image: grafana/promtail:2.9.2
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ./loki/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+    networks:
+      - internal
+
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  loki_data:
+

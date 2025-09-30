@@ -1,0 +1,9 @@
+route:
+  receiver: 'ops'
+
+group_wait: 10s
+repeat_interval: 30m
+receivers:
+  - name: 'ops'
+    webhook_configs:
+      - url: 'http://reporter:8074/alert'

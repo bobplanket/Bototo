@@ -1,0 +1,21 @@
+{
+  "app": "autollm-trader",
+  "feeds": [
+    {
+      "title": "Fed Watch",
+      "site_url": "https://www.federalreserve.gov/rss/feeds/press_all.xml",
+      "feed_url": "https://www.federalreserve.gov/rss/feeds/press_all.xml",
+      "category": "macro"
+    },
+    {
+      "title": "Bloomberg Markets",
+      "site_url": "https://www.bloomberg.com/markets",
+      "feed_url": "https://www.bloomberg.com/feeds/bbiz/sitemap_news.xml",
+      "category": "markets"
+    }
+  ],
+  "webhook": {
+    "url": "https://gateway-api/autollm/news/webhook",
+    "secret_env": "MINIFLUX_WEBHOOK_SECRET"
+  }
+}

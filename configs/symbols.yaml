@@ -1,0 +1,30 @@
+symbols:
+  - symbol: AAPL
+    venue: NASDAQ
+    sector: Technology
+    currency: USD
+    min_qty: 1
+    lot_size: 1
+    tick_size: 0.01
+  - symbol: MSFT
+    venue: NASDAQ
+    sector: Technology
+    currency: USD
+    min_qty: 1
+    lot_size: 1
+    tick_size: 0.01
+  - symbol: SPY
+    venue: ARCA
+    sector: ETF
+    currency: USD
+    min_qty: 1
+    lot_size: 1
+    tick_size: 0.01
+  - symbol: BTC/USDT
+    venue: BINANCE
+    sector: Crypto
+    currency: USDT
+    min_qty: 0.0001
+    lot_size: 0.0001
+    tick_size: 0.01
+

@@ -1,0 +1,27 @@
+name: e2e-paper-test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  paper-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python3 - --version 1.7.1
+      - name: Configure Poetry
+        run: |
+          ~/.local/bin/poetry config virtualenvs.create false
+      - name: Install dependencies
+        run: |
+          ~/.local/bin/poetry install --with dev
+      - name: Run e2e paper tests
+        env:
+          LIVE: "0"
+        run: ~/.local/bin/poetry run pytest tests/e2e -vv

@@ -1,0 +1,40 @@
+risk_manager:
+  nav_usd: 1000000
+  position_limits:
+    max_pos_pct_nav: 0.10
+    max_sector_pct_nav: 0.20
+    max_order_notional_pct_nav: 0.02
+    max_gross_exposure_pct_nav: 0.60
+    max_leverage: 1.5
+  frequency:
+    min_order_interval_seconds: 5
+    max_trades_per_day: 30
+  drawdown:
+    daily_loss_limit_pct: 0.02
+    max_drawdown_pct: 0.10
+  volatility:
+    atr_window: 14
+    atr_stop_loss_multiple: 3.0
+    atr_take_profit_multiple: 1.5
+    max_spread_bps: 30
+  calendars:
+    primary: NYSE
+    secondary: EURONEXT
+    allow_afterhours: false
+  dependencies:
+    require_data_stream: true
+    require_broker_connection: true
+  throttle:
+    intent_rate_limit_per_minute: 60
+    rejection_cooldown_seconds: 10
+  healthchecks:
+    data_ingestor: http://data-ingestor:8081/health
+    execution_ib: http://execution-ib:8082/health
+    execution_crypto: http://execution-crypto:8083/health
+  kill_switch:
+    enabled: true
+    storage_file: data/kill_switch.flag
+    live_toggle_file: data/live.flag
+  approvals:
+    require_manual_override: false
+

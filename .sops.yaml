@@ -1,0 +1,9 @@
+# Managed by bootstrap.sh — replace AGE public key automatically during provisioning.
+creation_rules:
+  - path_regex: \.env$
+    age:
+      - age1placeholderplaceholderplaceholderplaceholder0kdyv4jpp0
+    encrypted_regex: '^(.*PASSWORD.*|.*SECRET.*|.*TOKEN.*|.*KEY.*|.*USERID.*)$'
+  - path_regex: secrets/.*\.enc$
+    age:
+      - age1placeholderplaceholderplaceholderplaceholder0kdyv4jpp0

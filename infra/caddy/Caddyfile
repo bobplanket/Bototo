@@ -1,0 +1,13 @@
+autollm.local {
+  encode zstd gzip
+  tls {
+    on_demand
+  }
+  reverse_proxy /api/* gateway-api:8000
+  reverse_proxy /admin/* gateway-api:8000
+  reverse_proxy /grafana/* grafana:3000
+  reverse_proxy /prometheus/* prometheus:9090
+  route /health {
+    respond "ok" 200
+  }
+}

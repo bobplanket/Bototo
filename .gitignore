@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.env
+secrets/
+*.db
+reports/*.json
+apps/gateway_api/static/
+node_modules/
+.env.local
+.DS_Store

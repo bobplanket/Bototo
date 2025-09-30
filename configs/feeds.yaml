@@ -1,0 +1,25 @@
+feeds:
+  equities:
+    finnhub:
+      symbols: ["AAPL", "MSFT", "SPY"]
+      resolution: "1"
+      enabled: true
+    yfinance:
+      symbols: ["AAPL", "MSFT", "SPY"]
+      interval: "1m"
+      enabled: true
+  crypto:
+    ccxt:
+      exchange: "binance"
+      symbols: ["BTC/USDT"]
+      timeframe: "1m"
+      enabled: true
+  news:
+    miniflux:
+      webhook_secret_env: MINIFLUX_WEBHOOK_SECRET
+      priority_topics: ["Fed", "Inflation", "Earnings"]
+      enabled: true
+    alpaca:
+      api_key_env: ALPACA_NEWS_API_KEY
+      enabled: false
+

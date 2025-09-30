@@ -1,0 +1,38 @@
+{
+  "id": null,
+  "uid": "autollm-main",
+  "title": "AutoLLM Overview",
+  "timezone": "UTC",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "LLM Intents",
+      "targets": [
+        {
+          "expr": "sum(rate(llm_intents_total[5m])) by (side)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
+    },
+    {
+      "type": "graph",
+      "title": "Risk Rejections",
+      "targets": [
+        {"expr": "sum(rate(risk_rejections_total[5m])) by (reason)", "refId": "A"}
+      ],
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}
+    },
+    {
+      "type": "graph",
+      "title": "Execution Latency",
+      "targets": [
+        {"expr": "histogram_quantile(0.9, sum(rate(execution_latency_seconds_bucket[5m])) by (le))", "refId": "A"}
+      ],
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8}
+    }
+  ],
+  "templating": {"list": []}
+}
