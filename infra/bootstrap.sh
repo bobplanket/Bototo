@@ -220,7 +220,6 @@ install_base_packages() {
     git \
     curl \
     wget \
-    software-properties-common \
     unzip \
     jq \
     gnupg \
@@ -467,10 +466,10 @@ install_talib() {
     libxml2-dev \
     libxslt1-dev \
     zlib1g-dev \
-    libncurses5-dev \
+    libncurses-dev \
     libjpeg-dev \
-    libfreetype6-dev \
-    libatlas-base-dev \
+    libfreetype-dev \
+    libopenblas-dev \
     gfortran \
     cmake
 
