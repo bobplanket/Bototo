@@ -89,8 +89,11 @@ class EmbeddingService:
 
     def _fallback_embed(self, text: str) -> np.ndarray:
         digest = hashlib.sha256(text.encode("utf-8")).digest()
-        vec = np.frombuffer(digest[:FALLBACK_DIM * 2], dtype=np.uint8).astype(np.float32)
-        vec = vec[:FALLBACK_DIM]
+        base = np.frombuffer(digest, dtype=np.uint8).astype(np.float32)
+        if base.size < FALLBACK_DIM:
+            repeats = int(np.ceil(FALLBACK_DIM / base.size))
+            base = np.tile(base, repeats)
+        vec = base[:FALLBACK_DIM]
         norm = np.linalg.norm(vec)
         if norm == 0:
             return vec

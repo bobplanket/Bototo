@@ -11,17 +11,21 @@ from autollm_trader.models import FeatureSnapshot, IntentTrace, NewsItem, TradeI
 from autollm_trader.security.signature import signature_manager
 from autollm_trader.utils.time import utc_now
 
+from .embedding_service import EmbeddingService
 from .graph import AgentState, build_graph
-from .memory import LayeredMemory, MemoryRecord
 from .llm_client import LLMClient
+from .memory import LayeredMemory, MemoryRecord
+from .sentiment import SentimentAnalyzer
 
 logger = get_logger(__name__)
 
 
 class LLMAgentService:
     def __init__(self) -> None:
+        self.embedding_service = EmbeddingService()
+        self.sentiment_analyzer = SentimentAnalyzer(self.embedding_service)
         self.graph = build_graph()
-        self.memory = LayeredMemory()
+        self.memory = LayeredMemory(self.embedding_service)
         self._tasks: list[asyncio.Task[None]] = []
         self._lock = asyncio.Lock()
         try:
@@ -64,11 +68,19 @@ class LLMAgentService:
             layer = "intermediate"
         if any(tag.lower() in news.title.lower() for tag in ("10k", "annual")):
             layer = "deep"
+        sentiment_text = f"{news.title}. {news.summary}"
+        sentiment_label, sentiment_confidence = self.sentiment_analyzer.get_dominant_sentiment(sentiment_text)
+        metadata = {
+            "importance": f"{news.importance:.2f}",
+            "sentiment_document": news.sentiment,
+            "sentiment_embedding": sentiment_label,
+            "sentiment_confidence": f"{sentiment_confidence:.3f}",
+        }
         self.memory.add(
             key=news.id,
-            text=f"{news.title} {news.summary}",
+            text=sentiment_text,
             layer=layer,
-            metadata={"importance": str(news.importance), "sentiment": news.sentiment},
+            metadata=metadata,
         )
         logger.info("News ingested", extra={"news_id": news.id, "layer": layer})
 
