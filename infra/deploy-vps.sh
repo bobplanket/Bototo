@@ -80,11 +80,14 @@ if ! grep -q "^POSTGRES_PASSWORD=" .env || [ -z "$(grep '^POSTGRES_PASSWORD=' .e
     sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${POSTGRES_PWD}/" .env
 fi
 
+log_info "Nettoyage des caractères parasites dans .env..."
+perl -0pi -e 's/>\n/\n/g; s/>$//' .env
+
 log_info "Fichier .env configuré"
 
 # 4. Arrêt des services existants
 log_info "Arrêt des services existants..."
-docker compose -f infra/docker-compose.yml down || log_warn "Aucun service à arrêter"
+docker compose --env-file .env -f infra/docker-compose.yml down || log_warn "Aucun service à arrêter"
 sudo systemctl stop autollm-stack 2>/dev/null || log_warn "Service systemd non actif"
 
 # 5. Reconstruction et démarrage de la stack
