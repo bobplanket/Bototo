@@ -118,6 +118,7 @@ class Settings(BaseSettings):
     redis_port: int = Field(default=6379)
     redis_db: int = Field(default=0)
     redis_password: str | None = None
+    redis_tls_enabled: bool = Field(default=False)
     binance_api_key: str | None = Field(default=None, alias="BINANCE_API_KEY")
     binance_api_secret: str | None = Field(default=None, alias="BINANCE_API_SECRET")
     coinbase_api_key: str | None = Field(default=None, alias="COINBASE_API_KEY")
@@ -139,10 +140,11 @@ class Settings(BaseSettings):
 
     @property
     def redis_url(self) -> str:
+        protocol = "rediss" if self.redis_tls_enabled else "redis"
         password = self.redis_password
         if password:
-            return f"redis://:{password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
-        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
+            return f"{protocol}://:{password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
+        return f"{protocol}://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
 
 @lru_cache(maxsize=1)
